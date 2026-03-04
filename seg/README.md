@@ -1,6 +1,8 @@
-# MIC for Domain-Adaptive Semantic Segmentation
+# ICM for Domain-Adaptive Semantic Segmentation
 
 ## Environment Setup
+
+ICM mainly follows the env setup in [MIC](https://github.com/lhoyer/MIC)
 
 First, please install cuda version 11.0.3 available at [https://developer.nvidia.com/cuda-11-0-3-download-archive](https://developer.nvidia.com/cuda-11-0-3-download-archive). It is required to build mmcv-full later.
 
@@ -19,8 +21,6 @@ pip install -r requirements.txt -f https://download.pytorch.org/whl/torch_stable
 pip install mmcv-full==1.3.7  # requires the other packages to be installed first
 ```
 
-Please, download the MiT-B5 ImageNet weights provided by [SegFormer](https://github.com/NVlabs/SegFormer?tab=readme-ov-file#training)
-from their [OneDrive](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xieenze_connect_hku_hk/EvOn3l1WyM5JpnMQFSEO5b8B7vrHw9kDaJGII-3N9KNhrg?e=cpydzZ) and put them in the folder `pretrained/`.
 
 ## Dataset Setup
 
@@ -28,14 +28,7 @@ from their [OneDrive](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xiee
 gt_trainvaltest.zip from [here](https://www.cityscapes-dataset.com/downloads/)
 and extract them to `data/cityscapes`.
 
-**GTA:** Please, download all image and label packages from
-[here](https://download.visinf.tu-darmstadt.de/data/from_games/) and extract
-them to `data/gta`.
-
-**Synthia (Optional):** Please, download SYNTHIA-RAND-CITYSCAPES from
-[here](http://synthia-dataset.net/downloads/) and extract it to `data/synthia`.
-
-**ACDC (Optional):** Please, download rgb_anon_trainvaltest.zip and
+**ACDC:** Please, download rgb_anon_trainvaltest.zip and
 gt_trainval.zip from [here](https://acdc.vision.ee.ethz.ch/download) and
 extract them to `data/acdc`. Further, please restructure the folders from
 `condition/split/sequence/` to `split/` using the following commands:
@@ -47,18 +40,14 @@ rsync -a data/acdc/gt/*/train/*/*_labelTrainIds.png data/acdc/gt/train/
 rsync -a data/acdc/gt/*/val/*/*_labelTrainIds.png data/acdc/gt/val/
 ```
 
-**Dark Zurich (Optional):** Please, download the Dark_Zurich_train_anon.zip
-and Dark_Zurich_val_anon.zip from
-[here](https://www.trace.ethz.ch/publications/2019/GCMA_UIoU/) and extract it
-to `data/dark_zurich`.
 
 The final folder structure should look like this:
 
 ```none
-DAFormer
+ICM
 ├── ...
 ├── data
-│   ├── acdc (optional)
+│   ├── acdc
 │   │   ├── gt
 │   │   │   ├── train
 │   │   │   ├── val
@@ -72,19 +61,6 @@ DAFormer
 │   │   ├── gtFine
 │   │   │   ├── train
 │   │   │   ├── val
-│   ├── dark_zurich (optional)
-│   │   ├── gt
-│   │   │   ├── val
-│   │   ├── rgb_anon
-│   │   │   ├── train
-│   │   │   ├── val
-│   ├── gta
-│   │   ├── images
-│   │   ├── labels
-│   ├── synthia (optional)
-│   │   ├── RGB
-│   │   ├── GT
-│   │   │   ├── LABELS
 ├── ...
 ```
 
@@ -92,32 +68,21 @@ DAFormer
 train IDs and to generate the class index for RCS:
 
 ```shell
-python tools/convert_datasets/gta.py data/gta --nproc 8
 python tools/convert_datasets/cityscapes.py data/cityscapes --nproc 8
-python tools/convert_datasets/synthia.py data/synthia/ --nproc 8
 ```
 
 ## Training
 
-For convenience, we provide an [annotated config file](configs/mic/gtaHR2csHR_mic_hrda.py)
-of the final MIC(HRDA) on GTA→Cityscapes. A training job can be launched using:
+For the ACDC benchmark experiments in our paper, we use a script to automatically
+generate and train the configs:
 
 ```shell
-python run_experiments.py --config configs/mic/gtaHR2csHR_mic_hrda.py
+python run_experiments.py --exp 100
 ```
 
 The logs and checkpoints are stored in `work_dirs/`.
 
-For the other experiments in our paper, we use a script to automatically
-generate and train the configs:
-
-```shell
-python run_experiments.py --exp <ID>
-```
-
-More information about the available experiments and their assigned IDs, can be
-found in [experiments.py](experiments.py). The generated configs will be stored
-in `configs/generated/`.
+The generated configs will be stored in `configs/generated/`.
 
 ## Evaluation
 
@@ -131,14 +96,7 @@ The predictions are saved for inspection to
 `work_dirs/run_name/preds`
 and the mIoU of the model is printed to the console.
 
-When training a model on Synthia→Cityscapes, please note that the
-evaluation script calculates the mIoU for all 19 Cityscapes classes. However,
-Synthia contains only labels for 16 of these classes. Therefore, it is a common
-practice in UDA to report the mIoU for Synthia→Cityscapes only on these 16
-classes. As the Iou for the 3 missing classes is 0, you can do the conversion
-`mIoU16 = mIoU19 * 19 / 16`.
-
-The results for Cityscapes→ACDC and Cityscapes→DarkZurich are reported on
+The results for Cityscapes→ACDC are reported on
 the test split of the target dataset. To generate the predictions for the test
 set, please run:
 
@@ -151,11 +109,9 @@ respective dataset to obtain the test score.
 
 ## Checkpoints
 
-we provide the training log with the median validation performance here:
+we provide the training log with the median validation performance below, the checkpoint will be released on googledrive or onedrive due to the large file size:
 
-* [mmseg/models/uda/masking_consistency_module.py](mmseg/models/uda/masking_consistency_module.py):
-
-
+* [mmseg/models/uda/masking_consistency_module.py](mmseg/models/uda/masking_consistency_module.py)
 
 
 ## Framework Structure
@@ -165,24 +121,20 @@ For more information about the framework structure and the config system,
 please refer to the [mmsegmentation documentation](https://mmsegmentation.readthedocs.io/en/latest/index.html)
 and the [mmcv documentation](https://mmcv.readthedocs.ihttps://arxiv.org/abs/2007.08702o/en/v1.3.7/index.html).
 
-The most relevant files for MIC are:
+The most relevant files for ICM are:
 
-* [configs/mic/gtaHR2csHR_mic_hrda.py](configs/mic/gtaHR2csHR_mic_hrda.py):
-  Annotated config file for MIC(HRDA) on GTA→Cityscapes.
 * [experiments.py](experiments.py):
   Definition of the experiment configurations in the paper.
-* [mmseg/models/uda/masking_consistency_module.py](mmseg/models/uda/masking_consistency_module.py):
-  Implementation of MIC.
-* [mmseg/models/utils/masking_transforms.py](mmseg/models/utils/masking_transforms.py):
-  Implementation of the image patch masking.
+* [mmseg/models/uda/mix_consistency_module.py](mmseg/models/uda/mix_consistency_module.py):
+  Implementation of ICM.
 * [mmseg/models/uda/dacs.py](mmseg/models/uda/dacs.py):
-  Implementation of the DAFormer/HRDA self-training with integrated MaskingConsistencyModule
+  Implementation of the DAFormer/HRDA self-training with integrated ICM
 
 ## Acknowledgements
 
-MIC is based on the following open-source projects. We thank their
+ICM is based on the following open-source projects. We thank their
 authors for making the source code publicly available.
-
+* [MIC](https://github.com/lhoyer/MIC)
 * [HRDA](https://github.com/lhoyer/HRDA)
 * [DAFormer](https://github.com/lhoyer/DAFormer)
 * [MMSegmentation](https://github.com/open-mmlab/mmsegmentation)

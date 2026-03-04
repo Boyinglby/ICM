@@ -111,7 +111,7 @@ respective dataset to obtain the test score.
 
 we provide the training log with the median validation performance below, the checkpoint will be released on googledrive or onedrive due to the large file size:
 
-* [mmseg/models/uda/masking_consistency_module.py](mmseg/models/uda/masking_consistency_module.py)
+* [20260208_165122.log.json](20260208_165122.log.json)
 
 
 ## Framework Structure

@@ -2,7 +2,7 @@
 
 ## Environment Setup
 
-ICM mainly follows the env setup in [MIC](https://github.com/lhoyer/MIC)
+ICM mainly follows the env setup in [MIC](https://github.com/lhoyer/MIC) The exact enviroment set up of our ICM implementation can be seen in [environment.yml](environment.yml)
 
 First, please install cuda version 11.0.3 available at [https://developer.nvidia.com/cuda-11-0-3-download-archive](https://developer.nvidia.com/cuda-11-0-3-download-archive). It is required to build mmcv-full later.
 
